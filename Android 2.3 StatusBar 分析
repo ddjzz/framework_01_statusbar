@@ -1,0 +1,309 @@
+
+Android 2.3 StatusBar 分析（1）
+
+发布于：2012-08-11 20:50:31
+
+Android 2.3 StatusBar 分析（一）
+
+1. Framework/base/services/java/com/android/server/SystemServer.java
+
+   http://www.google.com/codesearch#uX1GffpyOZk/services/java/com/android/server/SystemServer.java&q=SystemServer&type=cs
+
+
+StatusBarManagerService statusBar = null;
+try {
+                Slog.i(TAG, "Status Bar");
+                statusBar = new StatusBarManagerService(context);
+                ServiceManager.addService(Context.STATUS_BAR_SERVICE, statusBar);
+            } catch (Throwable e) {
+                Slog.e(TAG, "Failure starting StatusBarManagerService", e);
+            }
+
+...
+
+if (statusBar != null) {
+            statusBar.systemReady();
+        }
+final StatusBarManagerService statusBarF = statusBar;
+
+if (statusBarF != null) statusBarF.systemReady2();
+
+
+
+SystemServer会初始化StatusBarMangerService,并会当system ready的时候呼叫StatusBarManagerService的SystemReady2
+
+
+
+2. framework/base/services/java/com/android/server/StatusBarMangerService.java
+
+   http://www.google.com/codesearch#x7kYzfrzW5Q/services/java/com/android/server/StatusBarManagerService.java&ct=rc&cd=9&q=IStatusBarService
+
+StatusBarManagerService extends IStatusBarService.Stub
+public void systemReady2() {
+        ComponentName cn = ComponentName.unflattenFromString(
+                mContext.getString(com.android.internal.R.string.config_statusBarComponent));
+        Intent intent = new Intent();
+        intent.setComponent(cn);
+        Slog.i(TAG, "Starting service: " + cn);
+        mContext.startService(intent);
+    }
+
+
+
+systemReady会启动SystemUI中的StatusBarService
+
+<string name="config_statusBarComponent">com.android.systemui/com.android.systemui.statusbar.StatusBarService</string>
+
+
+
+
+
+3,framework/base/core/java/com/android/internal/statusbar
+1)IStatusBar.aidl
+2)IStatusBarService.aidl
+3)StatusBarIcon.aidl
+4)StatusBarIconList.aidl
+5)StatusBarNotification.aidl
+6)StatusBarNotificationList.aidl
+7)StatusBarIcon.java
+8)StatusBarIconList.java
+9)StatusBarNotification.java
+这些主要是一些aidl file. ADIL,就是不同进程之间的桥梁。这里的IStatusBarsService.aidl就是StatusBarManagerService与StatusBarManger的桥梁。StatusBarManagerService<----IStatusBarsService--->StatusBarManger.
+
+我们会在SystemUI中的StatusBarService和StatusbarPolicy中会看到这样的代码：
+
+IStatusBarService mBarService;
+mBarService = IStatusBarService.Stub.asInterface(
+                ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+
+
+
+4,framework/base/core/java/android/app/StatusBarManger.java
+http://www.google.com/codesearch#uX1GffpyOZk/core/java/android/app/StatusBarManager.java&ct=rc&cd=1&q=StatusBarManager
+
+5,framework/base/packages/SystemUI
+
+
+
+http://www.myexception.cn/android/455307.html
+
+
+
+
+
+
+
+Android 2.3 StatusBar 分析（2）
+www.MyException.Cn   发布于：2012-08-25 10:06:20   浏览：0次
+Android 2.3 StatusBar 分析（二）
+1，Status Bar 上的icon 的配置
+android 预定义需要在status bar上显示的icon.其在framework/base/core/res/res/values/config.xml
+
+<!-- Component to be used as the status bar service.  Must implement the IStatusBar
+         interface.  This name is in the ComponentName flattened format (package/class)  -->
+    <string name="config_statusBarComponent">com.android.systemui/com.android.systemui.statusbar.StatusBarService</string>
+
+    <!-- Do not translate. Defines the slots for the right-hand side icons.  That is to say, the
+         icons in the status bar that are not notifications. -->
+    <string-array name="config_statusBarIcons">
+       <item><xliff:g id="id">ime</xliff:g></item>
+       <item><xliff:g id="id">sync_failing</xliff:g></item>
+       <item><xliff:g id="id">sync_active</xliff:g></item>
+       <item><xliff:g id="id">gps</xliff:g></item>
+       <item><xliff:g id="id">bluetooth</xliff:g></item>
+       <item><xliff:g id="id">nfc</xliff:g></item>
+       <item><xliff:g id="id">tty</xliff:g></item>
+       <item><xliff:g id="id">speakerphone</xliff:g></item>
+       <item><xliff:g id="id">mute</xliff:g></item>
+       <item><xliff:g id="id">volume</xliff:g></item>
+       <item><xliff:g id="id">wifi</xliff:g></item>
+       <item><xliff:g id="id">cdma_eri</xliff:g></item>
+       <item><xliff:g id="id">data_connection</xliff:g></item>
+       <item><xliff:g id="id">phone_evdo_signal</xliff:g></item>
+       <item><xliff:g id="id">phone_signal</xliff:g></item>
+       <item><xliff:g id="id">battery</xliff:g></item>
+       <item><xliff:g id="id">alarm_clock</xliff:g></item>
+       <item><xliff:g id="id">headset</xliff:g></item>
+       <item><xliff:g id="id">secure</xliff:g></item>
+       <item><xliff:g id="id">clock</xliff:g></item>
+    </string-array>
+
+
+这些icon在这个string array的位置就决定了其在status bar 上显示的位置了。我们可以从code里面得出该结论。所以当你要调换icon的顺序时，改动这个config.xml就可以了。下面我们来看如何得到该结论：
+1,在StatusBarManagerService 初始化的时候就会读取config.xml下icons 的String array.
+1)StatusBarManagerService.java
+
+StatusBarIconList mIcons = new StatusBarIconList();
+public StatusBarManagerService(Context context) {
+        mContext = context;
+
+        final Resources res = context.getResources();
+        mIcons.defineSlots(res.getStringArray(com.android.internal.R.array.config_statusBarIcons));
+    }
+
+
+
+2)StatusBarIconList.java
+
+    
+public void defineSlots(String[] slots) {
+        final int N = slots.length;
+        String[] s = mSlots = new String[N];
+        for (int i=0; i<N; i++) {
+            s[i] = slots[i];
+            Slog.i("", "StatusBarIconList "+i+" : "+ slots[i]);
+        }
+        mIcons = new StatusBarIcon[N];
+    }
+
+
+这里的mSlots这个string array就是保存了刚才config.xml中读出来的,并new 对应数目的StatusBarIcon。
+
+3)StatusBarPolicy.java
+
+// battery
+        mService.setIcon("battery", com.android.internal.R.drawable.stat_sys_battery_unknown, 0);
+....
+mService.setIcon("data_connection", R.drawable.stat_sys_data_connected_g, 0);
+....
+
+
+
+4)StatusBarManager.java
+
+ public void setIcon(String slot, int iconId, int iconLevel) {
+    	 
+        try {
+            mService.setIcon(slot, mContext.getPackageName(), iconId, iconLevel);
+            Slog.i("StatusBarManager", "setIcon: slot"+slot+" packageName:"+ mContext.getPackageName());
+        } catch (RemoteException ex) {
+            // system process is dead anyway.
+            throw new RuntimeException(ex);
+        }
+    }
+
+
+
+5)StatusBarManagerService.java
+
+
+ public void setIcon(String slot, String iconPackage, int iconId, int iconLevel) {
+        enforceStatusBar();
+
+        synchronized (mIcons) {
+            int index = mIcons.getSlotIndex(slot);
+            if (index < 0) {
+                throw new SecurityException("invalid status bar icon slot: " + slot);
+            }
+
+            StatusBarIcon icon = new StatusBarIcon(iconPackage, iconId, iconLevel);
+            Slog.d(TAG, "setIcon slot=" + slot + " index=" + index + " icon=" + icon);
+            mIcons.setIcon(index, icon);
+
+            if (mBar != null) {
+                try {
+                    mBar.setIcon(index, icon);
+                } catch (RemoteException ex) {
+                }
+            }
+        }
+    }
+
+ // ================================================================================
+    // Callbacks from the status bar service.
+    // ================================================================================
+    public void registerStatusBar(IStatusBar bar, StatusBarIconList iconList,
+            List<IBinder> notificationKeys, List<StatusBarNotification> notifications) {
+        enforceStatusBarService();
+
+        Slog.i(TAG, "registerStatusBar bar=" + bar);
+        mBar = bar;
+        synchronized (mIcons) {
+            iconList.copyFrom(mIcons);
+        }
+        synchronized (mNotifications) {
+        	Slog.i(TAG, "mNotifications=" + mNotifications.);
+            for (Map.Entry<IBinder,StatusBarNotification> e: mNotifications.entrySet()) {
+                notificationKeys.add(e.getKey());
+                notifications.add(e.getValue());
+            }
+        }
+    }
+
+
+这里的registerStatusBar会在StatusBarService的onCreate的时候调用：
+
+StatusBarIconList iconList = new StatusBarIconList();
+        ArrayList<IBinder> notificationKeys = new ArrayList<IBinder>();
+        ArrayList<StatusBarNotification> notifications = new ArrayList<StatusBarNotification>();
+        mCommandQueue = new CommandQueue(this, iconList);
+        mBarService = IStatusBarService.Stub.asInterface(
+                ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        hardware = IHardwareService.Stub.asInterface(ServiceManager.getService("hardware")); // helen
+        try {
+            mBarService.registerStatusBar(mCommandQueue, iconList, notificationKeys, notifications);
+        } catch (RemoteException ex) {
+            // If the system process isn't there we're doomed anyway.
+        }
+
+
+
+6）CommandQueue。java
+
+  public void setIcon(int index, StatusBarIcon icon) {
+        synchronized (mList) {
+            int what = MSG_ICON | index;
+            mHandler.removeMessages(what);
+            mHandler.obtainMessage(what, OP_SET_ICON, 0, icon.clone()).sendToTarget();
+        }
+    }
+
+
+ case MSG_ICON: {
+                    final int index = msg.what & INDEX_MASK;
+                    final int viewIndex = mList.getViewIndex(index);
+                    switch (msg.arg1) {
+                        case OP_SET_ICON: {
+                            StatusBarIcon icon = (StatusBarIcon)msg.obj;
+                            StatusBarIcon old = mList.getIcon(index);
+                            if (old == null) {
+                                mList.setIcon(index, icon);
+                                mCallbacks.addIcon(mList.getSlot(index), index, viewIndex, icon);
+                            } else {
+                                mList.setIcon(index, icon);
+                                mCallbacks.updateIcon(mList.getSlot(index), index, viewIndex,
+                                        old, icon);
+                            }
+                            break;
+                        }
+                        case OP_REMOVE_ICON:
+                            if (mList.getIcon(index) != null) {
+                                mList.removeIcon(index);
+                                mCallbacks.removeIcon(mList.getSlot(index), index, viewIndex);
+                            }
+                            break;
+                    }
+                    break;
+                }
+
+
+
+7)StatusBarService.java
+
+    public void addIcon(String slot, int index, int viewIndex, StatusBarIcon icon) {
+        if (SPEW_ICONS) {
+            Slog.d(TAG, "addIcon slot=" + slot + " index=" + index + " viewIndex=" + viewIndex
+                    + " icon=" + icon);
+        }
+        StatusBarIconView view = new StatusBarIconView(this, slot);
+        view.set(icon);
+        mStatusIcons.addView(view, viewIndex, new LinearLayout.LayoutParams(mIconSize, mIconSize));
+    }
+
+
+
+
+
+
+
+http://www.myexception.cn/android/593920.html
