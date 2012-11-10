@@ -1,0 +1,60 @@
+
+android2.3 FrameWork 对 StatusBar 处理流程
+
+2011-07-18 17:45
+
+
+
+    android2.3 以后对 StatusBar 的处理从以前的 framewor k抽出成了 app，放在 framework/base/packages/SystemUI 下
+
+ 
+
+    关系到的代码有，如下：
+
+    1,frameworks/base/services/java/com/android/server
+
+    2,frameworks/base/packages/SystemUI/
+
+    3.frameworks/base/core/java/android/app/StatusBarManager.java
+
+
+调用过程如下：
+
+1.  初始化过程
+
+      frameworks/base/services/java/com/android/server/SystemServer.java
+
+      －> ServerThread－>run()－>
+
+      statusBar = new StatusBarManagerService(context);
+      ServiceManager.addService(Context.STATUS_BAR_SERVICE, statusBar);     初始化  StatusBarManagerService
+
+      －>systemReady2()    启动  StatusBarService
+
+2.   调用过程
+
+       1) APP 层通过得到 StatusBar 的服务获取到 StatusBarManager 对象，然后通过 Binder 调用 StatusBarManagerService
+
+       2) StatusBarManagerService 通过使用 IStatusBar 的 aidl 调用 CommandQueue
+
+            在 CommandQueue 中定义 Callbacks 
+
+       3)  StatusBarService 实现了 CommandQueue 的回调
+
+3.    总结
+
+       StatusBarManagerService 是 StatusBar 处理的核心，而具体做实际事情的是 StatusBarService
+
+       本人只是看了整个流程，可能有 missing 的地方，请阅者给出意见
+
+ 
+
+4.    流程图如下
+
+
+
+
+
+
+
+http://blog.csdn.net/superman5054/article/details/6614840

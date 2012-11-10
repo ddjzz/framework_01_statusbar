@@ -30,7 +30,7 @@ if (statusBarF != null) statusBarF.systemReady2();
 
 
 
-SystemServer会初始化StatusBarMangerService,并会当system ready的时候呼叫StatusBarManagerService的SystemReady2
+    SystemServer 会初始化 StatusBarMangerService,并会当 system ready 的时候呼叫 StatusBarManagerService 的 SystemReady2
 
 
 
@@ -39,6 +39,7 @@ SystemServer会初始化StatusBarMangerService,并会当system ready的时候呼
    http://www.google.com/codesearch#x7kYzfrzW5Q/services/java/com/android/server/StatusBarManagerService.java&ct=rc&cd=9&q=IStatusBarService
 
 StatusBarManagerService extends IStatusBarService.Stub
+
 public void systemReady2() {
         ComponentName cn = ComponentName.unflattenFromString(
                 mContext.getString(com.android.internal.R.string.config_statusBarComponent));
@@ -50,7 +51,7 @@ public void systemReady2() {
 
 
 
-systemReady会启动SystemUI中的StatusBarService
+systemReady 会启动 SystemUI 中的 StatusBarService
 
 <string name="config_statusBarComponent">com.android.systemui/com.android.systemui.statusbar.StatusBarService</string>
 
@@ -59,18 +60,29 @@ systemReady会启动SystemUI中的StatusBarService
 
 
 3,framework/base/core/java/com/android/internal/statusbar
-1)IStatusBar.aidl
-2)IStatusBarService.aidl
-3)StatusBarIcon.aidl
-4)StatusBarIconList.aidl
-5)StatusBarNotification.aidl
-6)StatusBarNotificationList.aidl
-7)StatusBarIcon.java
-8)StatusBarIconList.java
-9)StatusBarNotification.java
-这些主要是一些aidl file. ADIL,就是不同进程之间的桥梁。这里的IStatusBarsService.aidl就是StatusBarManagerService与StatusBarManger的桥梁。StatusBarManagerService<----IStatusBarsService--->StatusBarManger.
 
-我们会在SystemUI中的StatusBarService和StatusbarPolicy中会看到这样的代码：
+    1) IStatusBar.aidl
+
+    2) IStatusBarService.aidl
+
+    3) StatusBarIcon.aidl
+
+    4) StatusBarIconList.aidl
+
+    5) StatusBarNotification.aidl
+
+    6) StatusBarNotificationList.aidl
+
+    7) StatusBarIcon.java
+
+    8) StatusBarIconList.java
+
+    9) StatusBarNotification.java
+
+    这些主要是一些 aidl file. ADIL,就是不同进程之间的桥梁。这里的 IStatusBarsService.aidl 就是 StatusBarManagerService 与 StatusBarManger 的桥梁。
+    StatusBarManagerService<----IStatusBarsService--->StatusBarManger.
+
+    我们会在SystemUI中的StatusBarService和StatusbarPolicy中会看到这样的代码：
 
 IStatusBarService mBarService;
 mBarService = IStatusBarService.Stub.asInterface(
@@ -78,14 +90,19 @@ mBarService = IStatusBarService.Stub.asInterface(
 
 
 
+
+
 4,framework/base/core/java/android/app/StatusBarManger.java
-http://www.google.com/codesearch#uX1GffpyOZk/core/java/android/app/StatusBarManager.java&ct=rc&cd=1&q=StatusBarManager
+
+    http://www.google.com/codesearch#uX1GffpyOZk/core/java/android/app/StatusBarManager.java&ct=rc&cd=1&q=StatusBarManager
+
+
+
+
 
 5,framework/base/packages/SystemUI
 
-
-
-http://www.myexception.cn/android/455307.html
+    http://www.myexception.cn/android/455307.html
 
 
 
@@ -94,10 +111,15 @@ http://www.myexception.cn/android/455307.html
 
 
 Android 2.3 StatusBar 分析（2）
-www.MyException.Cn   发布于：2012-08-25 10:06:20   浏览：0次
+
+发布于：2012-08-25 10:06:20
+
 Android 2.3 StatusBar 分析（二）
-1，Status Bar 上的icon 的配置
-android 预定义需要在status bar上显示的icon.其在framework/base/core/res/res/values/config.xml
+
+
+1，Status Bar 上的 icon 的配置
+
+    android 预定义需要在 status bar上显示的 icon.其在 framework/base/core/res/res/values/config.xml
 
 <!-- Component to be used as the status bar service.  Must implement the IStatusBar
          interface.  This name is in the ComponentName flattened format (package/class)  -->
@@ -106,32 +128,34 @@ android 预定义需要在status bar上显示的icon.其在framework/base/core/r
     <!-- Do not translate. Defines the slots for the right-hand side icons.  That is to say, the
          icons in the status bar that are not notifications. -->
     <string-array name="config_statusBarIcons">
-       <item><xliff:g id="id">ime</xliff:g></item>
-       <item><xliff:g id="id">sync_failing</xliff:g></item>
-       <item><xliff:g id="id">sync_active</xliff:g></item>
-       <item><xliff:g id="id">gps</xliff:g></item>
-       <item><xliff:g id="id">bluetooth</xliff:g></item>
-       <item><xliff:g id="id">nfc</xliff:g></item>
-       <item><xliff:g id="id">tty</xliff:g></item>
-       <item><xliff:g id="id">speakerphone</xliff:g></item>
-       <item><xliff:g id="id">mute</xliff:g></item>
-       <item><xliff:g id="id">volume</xliff:g></item>
-       <item><xliff:g id="id">wifi</xliff:g></item>
-       <item><xliff:g id="id">cdma_eri</xliff:g></item>
-       <item><xliff:g id="id">data_connection</xliff:g></item>
-       <item><xliff:g id="id">phone_evdo_signal</xliff:g></item>
-       <item><xliff:g id="id">phone_signal</xliff:g></item>
-       <item><xliff:g id="id">battery</xliff:g></item>
-       <item><xliff:g id="id">alarm_clock</xliff:g></item>
-       <item><xliff:g id="id">headset</xliff:g></item>
-       <item><xliff:g id="id">secure</xliff:g></item>
-       <item><xliff:g id="id">clock</xliff:g></item>
+       <item><xliff:g id="id">	ime		</xliff:g></item>
+       <item><xliff:g id="id">	sync_failing	</xliff:g></item>
+       <item><xliff:g id="id">	sync_active	</xliff:g></item>
+       <item><xliff:g id="id">	gps		</xliff:g></item>
+       <item><xliff:g id="id">	bluetooth	</xliff:g></item>
+       <item><xliff:g id="id">	nfc		</xliff:g></item>
+       <item><xliff:g id="id">	tty		</xliff:g></item>
+       <item><xliff:g id="id">	speakerphone	</xliff:g></item>
+       <item><xliff:g id="id">	mute		</xliff:g></item>
+       <item><xliff:g id="id">	volume		</xliff:g></item>
+       <item><xliff:g id="id">	wifi		</xliff:g></item>
+       <item><xliff:g id="id">	cdma_eri	</xliff:g></item>
+       <item><xliff:g id="id">	data_connection	</xliff:g></item>
+       <item><xliff:g id="id">	phone_evdo_signal	</xliff:g></item>
+       <item><xliff:g id="id">	phone_signal	</xliff:g></item>
+       <item><xliff:g id="id">	battery	</xliff:g></item>
+       <item><xliff:g id="id">	alarm_clock	</xliff:g></item>
+       <item><xliff:g id="id">	headset	</xliff:g></item>
+       <item><xliff:g id="id">	secure		</xliff:g></item>
+       <item><xliff:g id="id">	clock		</xliff:g></item>
     </string-array>
 
 
-这些icon在这个string array的位置就决定了其在status bar 上显示的位置了。我们可以从code里面得出该结论。所以当你要调换icon的顺序时，改动这个config.xml就可以了。下面我们来看如何得到该结论：
-1,在StatusBarManagerService 初始化的时候就会读取config.xml下icons 的String array.
-1)StatusBarManagerService.java
+    这些 icon 在这个 string array 的位置就决定了其在 status bar 上显示的位置了。我们可以从 code 里面得出该结论。所以当你要调换 icon 的顺序时，改动这个 config.xml 就可以了。下面我们来看如何得到该结论：
+
+    1,在 StatusBarManagerService 初始化的时候就会读取 config.xml 下 icons 的 String array.
+
+1) StatusBarManagerService.java
 
 StatusBarIconList mIcons = new StatusBarIconList();
 public StatusBarManagerService(Context context) {
@@ -143,7 +167,7 @@ public StatusBarManagerService(Context context) {
 
 
 
-2)StatusBarIconList.java
+2) StatusBarIconList.java
 
     
 public void defineSlots(String[] slots) {
@@ -157,9 +181,9 @@ public void defineSlots(String[] slots) {
     }
 
 
-这里的mSlots这个string array就是保存了刚才config.xml中读出来的,并new 对应数目的StatusBarIcon。
+    这里的 mSlots 这个 string array 就是保存了刚才 config.xml 中读出来的,并 new 对应数目的 StatusBarIcon。
 
-3)StatusBarPolicy.java
+3 )StatusBarPolicy.java
 
 // battery
         mService.setIcon("battery", com.android.internal.R.drawable.stat_sys_battery_unknown, 0);
@@ -169,9 +193,9 @@ mService.setIcon("data_connection", R.drawable.stat_sys_data_connected_g, 0);
 
 
 
-4)StatusBarManager.java
+4) StatusBarManager.java
 
- public void setIcon(String slot, int iconId, int iconLevel) {
+public void setIcon(String slot, int iconId, int iconLevel) {
     	 
         try {
             mService.setIcon(slot, mContext.getPackageName(), iconId, iconLevel);
@@ -184,10 +208,10 @@ mService.setIcon("data_connection", R.drawable.stat_sys_data_connected_g, 0);
 
 
 
-5)StatusBarManagerService.java
+5) StatusBarManagerService.java
 
 
- public void setIcon(String slot, String iconPackage, int iconId, int iconLevel) {
+public void setIcon(String slot, String iconPackage, int iconId, int iconLevel) {
         enforceStatusBar();
 
         synchronized (mIcons) {
@@ -210,8 +234,8 @@ mService.setIcon("data_connection", R.drawable.stat_sys_data_connected_g, 0);
     }
 
  // ================================================================================
-    // Callbacks from the status bar service.
-    // ================================================================================
+ // Callbacks from the status bar service.
+ // ================================================================================
     public void registerStatusBar(IStatusBar bar, StatusBarIconList iconList,
             List<IBinder> notificationKeys, List<StatusBarNotification> notifications) {
         enforceStatusBarService();
@@ -231,7 +255,7 @@ mService.setIcon("data_connection", R.drawable.stat_sys_data_connected_g, 0);
     }
 
 
-这里的registerStatusBar会在StatusBarService的onCreate的时候调用：
+    这里的 registerStatusBar 会在 StatusBarService 的 onCreate 的时候调用：
 
 StatusBarIconList iconList = new StatusBarIconList();
         ArrayList<IBinder> notificationKeys = new ArrayList<IBinder>();
@@ -248,7 +272,7 @@ StatusBarIconList iconList = new StatusBarIconList();
 
 
 
-6）CommandQueue。java
+6）CommandQueue.java
 
   public void setIcon(int index, StatusBarIcon icon) {
         synchronized (mList) {
@@ -288,7 +312,7 @@ StatusBarIconList iconList = new StatusBarIconList();
 
 
 
-7)StatusBarService.java
+7) StatusBarService.java
 
     public void addIcon(String slot, int index, int viewIndex, StatusBarIcon icon) {
         if (SPEW_ICONS) {
